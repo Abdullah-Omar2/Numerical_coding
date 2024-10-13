@@ -1,3 +1,4 @@
+// you must download gnuplot
 #include <stdio.h>
 #include <stdlib.h>
 
