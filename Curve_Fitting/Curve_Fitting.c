@@ -1,4 +1,5 @@
-//you must download gnuplot to see the graph
+// you must download gnuplot
+>>>>>>> b09a234c1f230ae2810b36a11d28ca76930c0fee
 #include <stdio.h>
 #include <stdlib.h>
 
