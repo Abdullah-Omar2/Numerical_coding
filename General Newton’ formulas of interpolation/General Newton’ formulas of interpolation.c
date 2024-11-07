@@ -30,6 +30,40 @@ double evaluatePolynomial(double x[], double div_diff[], int n, double val) {
     return result;
 }
 
+// Function to plot data and interpolation polynomial using gnuplot
+void plot_with_gnuplot(int n, double x[], double y[], double div_diff[], int poly_points) {
+    // Create data file for original points
+    FILE *dataFile = fopen("data.txt", "w");
+    for (int i = 0; i < n; i++) {
+        fprintf(dataFile, "%lf %lf\n", x[i], y[i]);
+    }
+    fclose(dataFile);
+
+    // Create file for interpolated polynomial points
+    FILE *polyFile = fopen("poly_data.txt", "w");
+    double x_min = x[0], x_max = x[n - 1];
+    double step = (x_max - x_min) / poly_points;
+    for (double xi = x_min; xi <= x_max; xi += step) {
+        double yi = evaluatePolynomial(x, div_diff, n, xi);
+        fprintf(polyFile, "%lf %lf\n", xi, yi);
+    }
+    fclose(polyFile);
+
+    // Write gnuplot commands to a file
+    FILE *gnuplotFile = fopen("plot_commands.gp", "w");
+    fprintf(gnuplotFile, "set title 'Newton Interpolation Polynomial'\n");
+    fprintf(gnuplotFile, "set xlabel 'X'\n");
+    fprintf(gnuplotFile, "set ylabel 'Y'\n");
+    fprintf(gnuplotFile, "set grid\n");
+    fprintf(gnuplotFile, "plot 'data.txt' with points pointtype 7 title 'Data Points', ");
+    fprintf(gnuplotFile, "'poly_data.txt' with lines title 'Interpolated Polynomial'\n");
+    fprintf(gnuplotFile, "pause -1\n");
+    fclose(gnuplotFile);
+
+    // Run gnuplot with the command file
+    system("gnuplot plot_commands.gp");
+}
+
 int main() {
     int n;
     printf("Enter number of data points: ");
@@ -48,34 +82,14 @@ int main() {
     // Calculate divided differences
     calculateDividedDifference(x, y, div_diff, n);
 
-    // File to store x, y, and interpolated values for gnuplot
-    FILE *fp = fopen("data.txt", "w");
-    double x_range_min = x[0], x_range_max = x[n - 1];
-    double step = (x_range_max - x_range_min) / 100.0;
-    for (double xi = x_range_min; xi <= x_range_max; xi += step) {
-        double yi = evaluatePolynomial(x, div_diff, n, xi);
-        fprintf(fp, "%lf %lf\n", xi, yi);
-    }
-    fclose(fp);
-
-    // Print polynomial
+    // Print polynomial coefficients
     printf("Interpolated polynomial coefficients (Newton's Form):\n");
     for (int i = 0; i < n; i++) {
         printf("Coefficient of term %d: %lf\n", i, div_diff[i]);
     }
 
-    // Call gnuplot to plot the data
-    FILE *gp = fopen("plot.gnuplot", "w");
-    fprintf(gp, "set title 'Newton Interpolation'\n");
-    fprintf(gp, "set xlabel 'x'\n");
-    fprintf(gp, "set ylabel 'y'\n");
-    fprintf(gp, "plot 'data.txt' with lines title 'Interpolated Polynomial', '-' with points title 'Data Points'\n");
-    for (int i = 0; i < n; i++) {
-        fprintf(gp, "%lf %lf\n", x[i], y[i]);
-    }
-    fprintf(gp, "e\n");
-    fclose(gp);
-    system("gnuplot -persist plot.gnuplot");
+    // Plot with gnuplot
+    plot_with_gnuplot(n, x, y, div_diff, 100);
 
     return 0;
 }
